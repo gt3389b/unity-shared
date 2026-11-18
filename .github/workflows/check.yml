@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: Apache-2.0
+name: check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: shell and python syntax
+        run: |
+          find . -name '*.sh' -print0 | xargs -0 -n1 bash -n
+          find . -name '*.py' -print0 | xargs -0 python3 -I -m py_compile
+
+  wmediumd:
+    strategy:
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: build
+        run: bash wifi-sim/wmediumd/build.sh
+      - name: report
+        run: |
+          file wifi-sim/wmediumd/out/wmediumd
+          cat wifi-sim/wmediumd/out/COMMIT

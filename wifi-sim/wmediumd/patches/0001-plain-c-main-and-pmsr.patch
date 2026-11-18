@@ -1,0 +1,58 @@
+From: unity-shared <noreply@github.com>
+Subject: [PATCH] build: plain-C main() and pmsr.o so the Makefile links without Android
+
+AOSP compiles main.cc (C++, android-base, gRPC server) through Android.bp
+only; wmediumd/Makefile links no main() and omits pmsr.o, so `make` fails
+with undefined references to main and parse_pmsr_request. Add a C main()
+equivalent to main.cc minus the gRPC server thread, and pmsr.o.
+
+diff --git a/wmediumd/Makefile b/wmediumd/Makefile
+index fa94eb0..e6ab563 100644
+--- a/wmediumd/Makefile
++++ b/wmediumd/Makefile
+@@ -49,7 +49,7 @@ CFLAGS += $(shell $(PKG_CONFIG) --cflags $(NLLIBNAME))
+ 
+ CFLAGS+=-DVERSION_STR=$(VERSION_STR)
+ LDFLAGS+=-lconfig 
+-OBJECTS=wmediumd.o config.o per.o
++OBJECTS=main.o wmediumd.o config.o per.o pmsr.o
+ OBJECTS += lib/loop.o lib/sched.o lib/schedctrl.o
+ OBJECTS += lib/uds.o lib/vhost.o lib/wallclock.o
+ 
+diff --git a/wmediumd/main.c b/wmediumd/main.c
+new file mode 100644
+index 0000000..b9d04e6
+--- /dev/null
++++ b/wmediumd/main.c
+@@ -0,0 +1,31 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * Plain-C entry point for the AOSP wmediumd tree (unity-shared patch,
++ * see UPSTREAM). AOSP builds main.cc (C++, android-base,
++ * a gRPC server thread) with Android.bp only, so its Makefile links no
++ * main(). This does what main.cc does without the gRPC server: it creates
++ * the eventfd and SysV message queue that wmediumd_main() polls, which
++ * nothing else then writes to.
++ */
++#include <stdio.h>
++#include <unistd.h>
++#include <sys/eventfd.h>
++#include <sys/ipc.h>
++#include <sys/msg.h>
++#include "wmediumd.h"
++
++int main(int argc, char *argv[])
++{
++	int fd = eventfd(0, 0);
++	int msq_id = msgget(IPC_PRIVATE, IPC_CREAT | 0600);
++	int ret;
++
++	if (fd < 0 || msq_id < 0) {
++		perror("wmediumd: eventfd/msgget");
++		return 1;
++	}
++	ret = wmediumd_main(argc, argv, fd, msq_id);
++	msgctl(msq_id, IPC_RMID, 0);
++	close(fd);
++	return ret;
++}

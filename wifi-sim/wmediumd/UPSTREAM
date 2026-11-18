@@ -1,0 +1,24 @@
+url: https://android.googlesource.com/platform/external/wmediumd
+commit: f44d2af28b8045eb31ff045d3c078e60865afa98
+date: 2024-12-19
+
+What: wmediumd, the mac80211_hwsim medium simulator (positions, path loss,
+per-link error probability, interference). A test tool: it runs beside
+mac80211_hwsim radios and is not linked into anything we ship.
+
+Why this tree: the AOSP mirror (Cuttlefish) is the most complete copy —
+upstream github.com/bcopeland/wmediumd stops at 717e5d7 (2021-03-01), and
+AOSP carries three more years of fixes (frame bit rates, PMSR, gRPC control).
+
+Licence: GPL-2.0-or-later (wmediumd.c, config.c, per.c, pmsr.c, list.h);
+BSD-3-Clause (lib/, inc/usfstl). Not vendored for that reason — build.sh
+fetches this commit and applies patches/; the repo carries only this file,
+the patches and the script. Patches touching GPL files are GPL-2.0-or-later.
+
+Built: wmediumd/ with its Makefile. Not built: main.cc and wmediumd_server/
+(C++, android-base, gRPC), Android.bp, util/, tests/.
+
+Patches:
+  0001-plain-c-main-and-pmsr.patch  C main() equivalent to main.cc without
+                                    the gRPC server; pmsr.o added to OBJECTS
+                                    (the AOSP Makefile does not link otherwise)

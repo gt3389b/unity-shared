@@ -1,0 +1,11 @@
+# Pinned sha256 of the mainline kernel tarballs build.sh is allowed to use.
+# Verified against cdn.kernel.org sha256sums.asc (PGP, kernel.org checksum
+# autosigner B8868C80BA62A1FFFAF5FDA9632D3A06589DA6B1): 7.0.14 on 2026-10-16
+# (arm64 OrbStack), 7.0.5 on 2026-10-18 (x86_64 OrbStack), 7.2.9 on 2026-10-27
+# (arm64 OrbStack, after an OrbStack update), 7.2.12 on 2026-11-01 (arm64
+# OrbStack, after an OrbStack update). Add a line when
+# OrbStack moves to a new base version; build.sh refuses an unpinned tarball.
+965fb0a1c1675399fc60c6063b227c0523041b5f9a662b66462f1212c438ac3c  linux-7.0.5.tar.xz
+de9999b784d2293f00d39c62d8f92a08ab8a54bc4e80ffd250a0c09cb07a0f98  linux-7.0.14.tar.xz
+b4c5dfbe51a364a6c7f03869200f88c8e1f77403539005f14b7fc6bc91b8d8ba  linux-7.2.9.tar.xz
+bb18468a8dc8978aa00caa6446e753f7b6da3fee56b6b7f38b16f9430ba02d4f  linux-7.2.12.tar.xz
